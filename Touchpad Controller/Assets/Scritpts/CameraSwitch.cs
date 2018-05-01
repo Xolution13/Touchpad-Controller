@@ -4,8 +4,12 @@ using UnityEngine;
 
 public class CameraSwitch : MonoBehaviour
 {
-    public Camera mainCamera;
+    public GameObject mainCameraObject;
+    private Camera mainCamera;
+    public GameObject transitionCameraPrefab;
+    private Camera transitionCamera;
     public GameObject controllerEnities;
+    private GameObject newCamera;
 
     public Transform controllerTransform;   // Use a copy of the controller camera transform (not as child of controller entities!)
 
@@ -17,6 +21,7 @@ public class CameraSwitch : MonoBehaviour
 
     private void Awake()
     {
+        mainCamera = mainCameraObject.GetComponent<Camera>();
         SetActiveAllChildren(controllerEnities.transform, false);   // Disable everything that belongs to the controller
         mainCamera.enabled = true;                                  // Make sure that the main camera is on
     }
@@ -27,16 +32,16 @@ public class CameraSwitch : MonoBehaviour
         if (moveCamera)
         {
             // Rotate camera to the controller rotation
-            mainCamera.transform.rotation = Quaternion.RotateTowards(mainCamera.transform.rotation, 
+            transitionCamera.transform.rotation = Quaternion.RotateTowards(transitionCamera.transform.rotation, 
                                                                     controllerTransform.rotation, 
                                                                     Time.deltaTime * rotationSpeed * 10);
             // Move camera to the controller position
-            mainCamera.transform.position = Vector3.MoveTowards(mainCamera.transform.position,
+            transitionCamera.transform.position = Vector3.MoveTowards(transitionCamera.transform.position,
                                                                 controllerTransform.position,
                                                                 Time.deltaTime * translationSpeed * 10);
 
             // Activate controller when camera has moved to the right position and has finished rotation
-            if (mainCamera.transform.position == controllerTransform.position && mainCamera.transform.rotation == controllerTransform.rotation)
+            if (transitionCamera.transform.position == controllerTransform.position && transitionCamera.transform.rotation == controllerTransform.rotation)
             {
                 moveCamera = false;
                 activateController = true;
@@ -45,13 +50,25 @@ public class CameraSwitch : MonoBehaviour
         else if (activateController)
         {
             SetActiveAllChildren(controllerEnities.transform, true);    // Enable everything that belongs to the controller
-            mainCamera.enabled = false;                                 // Disable main camera
+            transitionCamera.enabled = false;                           // Disable main camera
         }
     }
 
     // Call this method on button to activate first person controller
     public void ActivateControllerCamera()
     {
+        // Get main camera rotation
+        Quaternion mainCameraRotation = mainCameraObject.transform.rotation;
+
+        // Instantiate new Camera prefab
+        newCamera = Instantiate(transitionCameraPrefab, mainCameraObject.transform.position, mainCameraRotation);
+
+        // Get new camera object of that prefab
+        transitionCamera = newCamera.GetComponent<Camera>();
+
+        // Disable main camera and enable new camera
+        mainCamera.enabled = false;
+        transitionCamera.enabled = true;
         moveCamera = true;
     }
 

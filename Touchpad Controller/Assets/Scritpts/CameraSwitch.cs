@@ -35,8 +35,8 @@ public class CameraSwitch : MonoBehaviour
                                                                 controllerTransform.position,
                                                                 Time.deltaTime * translationSpeed * 10);
 
-            // Activate controller when camera has moved to the right position
-            if (mainCamera.transform.position == controllerTransform.position)
+            // Activate controller when camera has moved to the right position and has finished rotation
+            if (mainCamera.transform.position == controllerTransform.position && mainCamera.transform.rotation == controllerTransform.rotation)
             {
                 moveCamera = false;
                 activateController = true;
